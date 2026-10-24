@@ -25,10 +25,10 @@ export function AdminSidebar() {
   const { logout, user } = useAuth();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#0d0d0d] border-r border-[#1a1a1a] flex flex-col" style={{ boxShadow: '4px 0 20px rgba(0, 255, 255, 0.05)' }}>
       {/* Logo */}
-      <div className="p-6 border-b">
-        <h1 className="text-xl font-bold text-gray-900">Velora Admin</h1>
+      <div className="p-6 border-b border-[#1a1a1a]">
+        <h1 className="text-xl font-bold neon-text-cyan" style={{ animation: 'neon-pulse 2s ease-in-out infinite' }}>Velora Admin</h1>
         <p className="text-xs text-gray-500 mt-1">Panel de administración</p>
       </div>
 
@@ -42,13 +42,17 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-black text-white"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/30"
+                  : "text-gray-400 hover:bg-[#1a1a1a] hover:text-cyan-300"
               }`}
+              style={isActive ? { 
+                textShadow: '0 0 8px #00ffff',
+                boxShadow: '0 0 15px rgba(0, 255, 255, 0.2), inset 0 0 15px rgba(0, 255, 255, 0.05)'
+              } : {}}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4" style={isActive ? { filter: 'drop-shadow(0 0 3px #00ffff)' } : {}} />
               {item.label}
             </Link>
           );
@@ -56,15 +60,15 @@ export function AdminSidebar() {
       </nav>
 
       {/* Usuario y logout */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t border-[#1a1a1a]">
         <div className="flex items-center gap-3 px-3 py-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-            <span className="text-xs font-medium text-gray-600">
+          <div className="w-8 h-8 rounded-full bg-cyan-400/20 flex items-center justify-center" style={{ boxShadow: '0 0 10px rgba(0, 255, 255, 0.3)' }}>
+            <span className="text-xs font-medium text-cyan-400">
               {user?.username?.charAt(0).toUpperCase() || "A"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-white truncate">
               {user?.username || "Admin"}
             </p>
             <p className="text-xs text-gray-500 truncate">
@@ -74,7 +78,8 @@ export function AdminSidebar() {
         </div>
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors"
+          style={{ textShadow: '0 0 5px #ff4757' }}
         >
           <LogOut className="h-4 w-4" />
           Cerrar sesión

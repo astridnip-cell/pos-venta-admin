@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 
 const statusOptions = [
-  { value: "pending", label: "Pendiente", color: "bg-yellow-100 text-yellow-800", icon: Clock },
-  { value: "paid", label: "Pagado", color: "bg-blue-100 text-blue-800", icon: Check },
-  { value: "shipped", label: "Enviado", color: "bg-purple-100 text-purple-800", icon: Truck },
-  { value: "delivered", label: "Entregado", color: "bg-green-100 text-green-800", icon: Package },
+  { value: "pending", label: "Pendiente", color: "bg-yellow-400/10 text-yellow-400", icon: Clock },
+  { value: "paid", label: "Pagado", color: "bg-cyan-400/10 text-cyan-400", icon: Check },
+  { value: "shipped", label: "Enviado", color: "bg-purple-400/10 text-purple-400", icon: Truck },
+  { value: "delivered", label: "Entregado", color: "bg-green-400/10 text-green-400", icon: Package },
 ];
 
 export default function PedidosPage() {
@@ -81,22 +81,22 @@ export default function PedidosPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Pedidos</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white" style={{ textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' }}>Pedidos</h1>
+        <p className="text-gray-400 mt-1">
           Gestiona los pedidos de tu tienda
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border">
+      <div className="neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-500 border-b">
+                <tr className="text-left text-sm text-gray-400 border-b border-[#1a1a1a]">
                   <th className="px-6 py-3 font-medium">Pedido</th>
                   <th className="px-6 py-3 font-medium">Cliente</th>
                   <th className="px-6 py-3 font-medium">Email</th>
@@ -112,7 +112,7 @@ export default function PedidosPage() {
                       colSpan={6}
                       className="px-6 py-8 text-center text-gray-500"
                     >
-                      <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-cyan-400" />
                       No hay pedidos aún
                     </td>
                   </tr>
@@ -121,22 +121,23 @@ export default function PedidosPage() {
                     const attrs = order.attributes || order;
                     const statusConfig = getStatusConfig(attrs.statusOrder);
                     const StatusIcon = statusConfig.icon;
+                    const statusGlow = statusConfig.color.includes('cyan') ? '#00ffff' : statusConfig.color.includes('green') ? '#39ff14' : statusConfig.color.includes('purple') ? '#bf00ff' : '#ffff00';
 
                     return (
                       <tr
                         key={order.id}
-                        className="border-b last:border-0 hover:bg-gray-50"
+                        className="neon-table-row border-b border-[#1a1a1a] last:border-0"
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 text-sm font-medium text-white">
                           #{attrs.orderNumber || order.id}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-400">
                           {attrs.customerName || "N/A"}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-400">
                           {attrs.customerEmail || "N/A"}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-400">
                           {attrs.createdAt
                             ? new Date(attrs.createdAt).toLocaleDateString(
                                 "es-CO"
@@ -152,6 +153,7 @@ export default function PedidosPage() {
                                 )
                               }
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
+                              style={{ boxShadow: `0 0 8px ${statusGlow}40` }}
                             >
                               <StatusIcon className="h-3 w-3" />
                               {statusConfig.label}
@@ -159,7 +161,7 @@ export default function PedidosPage() {
                             </button>
 
                             {openMenu === order.id && (
-                              <div className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-[140px]">
+                              <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg z-10 min-w-[140px]" style={{ boxShadow: '0 0 20px rgba(0, 255, 255, 0.1)' }}>
                                 {statusOptions.map((option) => {
                                   const OptionIcon = option.icon;
                                   return (
@@ -171,7 +173,7 @@ export default function PedidosPage() {
                                           option.value
                                         )
                                       }
-                                      className="flex items-center gap-2 w-full px-3 py-2 text-xs hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                                      className="flex items-center gap-2 w-full px-3 py-2 text-xs text-gray-300 hover:bg-[#333] hover:text-white first:rounded-t-lg last:rounded-b-lg"
                                     >
                                       <OptionIcon className="h-3 w-3" />
                                       {option.label}
@@ -182,7 +184,7 @@ export default function PedidosPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
+                        <td className="px-6 py-4 text-sm font-medium text-white text-right">
                           ${(attrs.total || 0).toLocaleString("es-CO")}
                         </td>
                       </tr>

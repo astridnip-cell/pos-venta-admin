@@ -32,27 +32,27 @@ export default function CategoriasPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Categorías</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-white" style={{ textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' }}>Categorías</h1>
+          <p className="text-gray-400 mt-1">
             Organiza tus productos por categorías
           </p>
         </div>
-        <button className="flex items-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors">
+        <button className="flex items-center gap-2 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 px-4 py-2.5 rounded-lg hover:bg-cyan-400/20 transition-colors" style={{ boxShadow: '0 0 10px #00ffff40, 0 0 20px #00ffff20, inset 0 0 10px #00ffff10' }}>
           <Plus className="h-4 w-4" />
           Nueva Categoría
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border">
+      <div className="neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-sm text-gray-500 border-b">
+                <tr className="text-left text-sm text-gray-400 border-b border-[#1a1a1a]">
                   <th className="px-6 py-3 font-medium">Nombre</th>
                   <th className="px-6 py-3 font-medium">Slug</th>
                   <th className="px-6 py-3 font-medium">Descripción</th>
@@ -65,7 +65,7 @@ export default function CategoriasPage() {
                       colSpan={3}
                       className="px-6 py-8 text-center text-gray-500"
                     >
-                      <Tags className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      <Tags className="h-8 w-8 mx-auto mb-2 text-cyan-400" />
                       No hay categorías
                     </td>
                   </tr>
@@ -75,15 +75,15 @@ export default function CategoriasPage() {
                     return (
                       <tr
                         key={category.id}
-                        className="border-b last:border-0 hover:bg-gray-50"
+                        className="neon-table-row border-b border-[#1a1a1a] last:border-0"
                       >
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <td className="px-6 py-4 text-sm font-medium text-white">
                           {attrs.name}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-sm text-gray-400">
                           {attrs.slug}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-400">
                           {attrs.description || "Sin descripción"}
                         </td>
                       </tr>

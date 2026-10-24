@@ -83,33 +83,41 @@ export default function DashboardPage() {
       label: "Total Productos",
       value: stats.totalProducts,
       icon: Package,
-      color: "bg-blue-500",
+      color: "text-cyan-400",
+      bg: "bg-cyan-400/10",
+      border: "border-cyan-400/30",
     },
     {
       label: "Pedidos",
       value: stats.totalOrders,
       icon: ShoppingCart,
-      color: "bg-green-500",
+      color: "text-green-400",
+      bg: "bg-green-400/10",
+      border: "border-green-400/30",
     },
     {
       label: "Ingresos Totales",
       value: `$${stats.totalRevenue.toLocaleString("es-CO")}`,
       icon: DollarSign,
-      color: "bg-purple-500",
+      color: "text-purple-400",
+      bg: "bg-purple-400/10",
+      border: "border-purple-400/30",
     },
     {
       label: "Stock Bajo",
       value: stats.lowStockProducts,
       icon: AlertTriangle,
-      color: "bg-orange-500",
+      color: "text-orange-400",
+      bg: "bg-orange-400/10",
+      border: "border-orange-400/30",
     },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-white" style={{ textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' }}>Dashboard</h1>
+        <p className="text-gray-400 mt-1">
           Resumen general de tu tienda
         </p>
       </div>
@@ -118,22 +126,28 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((stat) => {
           const Icon = stat.icon;
+          const glowColor = stat.color === 'text-cyan-400' ? '#00ffff' : stat.color === 'text-green-400' ? '#39ff14' : stat.color === 'text-purple-400' ? '#bf00ff' : '#ff6600';
           return (
             <div
               key={stat.label}
-              className="bg-white rounded-xl border p-6"
+              className={`neon-card bg-[#111111] rounded-xl border ${stat.border} p-6`}
+              style={{ 
+                boxShadow: `0 0 15px ${glowColor}20, inset 0 0 15px ${glowColor}05`,
+                animation: 'float 3s ease-in-out infinite'
+              }}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                  <p className="text-sm text-gray-400">{stat.label}</p>
+                  <p className={`text-2xl font-bold mt-1 ${stat.color}`} style={{ textShadow: `0 0 10px ${glowColor}, 0 0 20px ${glowColor}` }}>
                     {stat.value}
                   </p>
                 </div>
                 <div
-                  className={`w-12 h-12 rounded-lg ${stat.color} flex items-center justify-center`}
+                  className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center`}
+                  style={{ boxShadow: `0 0 15px ${glowColor}40, inset 0 0 10px ${glowColor}20` }}
                 >
-                  <Icon className="h-6 w-6 text-white" />
+                  <Icon className={`h-6 w-6 ${stat.color}`} style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }} />
                 </div>
               </div>
             </div>
@@ -142,16 +156,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Pedidos recientes */}
-      <div className="bg-white rounded-xl border">
-        <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <div className="neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
+        <div className="p-6 border-b border-[#1a1a1a]">
+          <h2 className="text-lg font-semibold text-white" style={{ textShadow: '0 0 8px #00ffff, 0 0 16px #00ffff' }}>
             Pedidos Recientes
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-500 border-b">
+              <tr className="text-left text-sm text-gray-400 border-b border-[#1a1a1a]">
                 <th className="px-6 py-3 font-medium">Pedido</th>
                 <th className="px-6 py-3 font-medium">Cliente</th>
                 <th className="px-6 py-3 font-medium">Estado</th>
@@ -172,31 +186,31 @@ export default function DashboardPage() {
                 recentOrders.map((order: any) => {
                   const attrs = order.attributes || order;
                   const statusColors: Record<string, string> = {
-                    pending: "bg-yellow-100 text-yellow-800",
-                    paid: "bg-blue-100 text-blue-800",
-                    shipped: "bg-purple-100 text-purple-800",
-                    delivered: "bg-green-100 text-green-800",
+                    pending: "bg-yellow-400/10 text-yellow-400",
+                    paid: "bg-cyan-400/10 text-cyan-400",
+                    shipped: "bg-purple-400/10 text-purple-400",
+                    delivered: "bg-green-400/10 text-green-400",
                   };
 
                   return (
-                    <tr key={order.id} className="border-b last:border-0">
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    <tr key={order.id} className="border-b border-[#1a1a1a] last:border-0 hover:bg-[#1a1a1a]/50">
+                      <td className="px-6 py-4 text-sm font-medium text-white">
                         #{attrs.orderNumber || order.id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-6 py-4 text-sm text-gray-400">
                         {attrs.customerName || "N/A"}
                       </td>
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             statusColors[attrs.statusOrder] ||
-                            "bg-gray-100 text-gray-800"
+                            "bg-gray-400/10 text-gray-400"
                           }`}
                         >
                           {attrs.statusOrder || "pending"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
+                      <td className="px-6 py-4 text-sm font-medium text-white text-right">
                         ${(attrs.total || 0).toLocaleString("es-CO")}
                       </td>
                     </tr>

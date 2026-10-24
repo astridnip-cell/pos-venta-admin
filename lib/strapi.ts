@@ -106,6 +106,46 @@ export async function getProductById(token: string, id: number) {
 }
 
 /**
+ * Extrae un mensaje de error legible a partir de la respuesta de Strapi.
+ */
+async function getApiError(res: Response, fallback: string): Promise<Error> {
+  let message = fallback;
+  try {
+    const error = await res.json();
+    const details = error?.error?.details;
+    const fieldErrors = details?.errors?.map((e: any) => e.message).join(", ");
+    message =
+      error?.error?.message ||
+      fieldErrors ||
+      fallback;
+  } catch {
+    /* ignore */
+  }
+  return new Error(message);
+}
+
+/**
+ * Sube una imagen a Strapi (plugin Upload).
+ * Devuelve el archivo creado ({ id, url, ... }).
+ */
+export async function uploadImage(token: string, file: File) {
+  const formData = new FormData();
+  formData.append("files", file);
+
+  const res = await fetch(`${STRAPI_URL}/api/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) throw await getApiError(res, "Error al subir la imagen");
+  const data = await res.json();
+  return data?.[0];
+}
+
+/**
  * Crea un nuevo producto.
  */
 export async function createProduct(token: string, data: any) {
@@ -118,7 +158,7 @@ export async function createProduct(token: string, data: any) {
     body: JSON.stringify({ data }),
   });
 
-  if (!res.ok) throw new Error("Error al crear producto");
+  if (!res.ok) throw await getApiError(res, "Error al crear producto");
   return res.json();
 }
 
@@ -135,7 +175,7 @@ export async function updateProduct(token: string, id: number, data: any) {
     body: JSON.stringify({ data }),
   });
 
-  if (!res.ok) throw new Error("Error al actualizar producto");
+  if (!res.ok) throw await getApiError(res, "Error al actualizar producto");
   return res.json();
 }
 
