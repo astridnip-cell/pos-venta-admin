@@ -13,7 +13,8 @@ import { createProduct, updateProduct, uploadImage } from "@/lib/strapi";
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
 
 interface Category {
-  id: number;
+  /** documentId de la categoría (Strapi 5) */
+  id: string;
   name: string;
 }
 
@@ -115,7 +116,7 @@ export function ProductFormModal({
     );
     setStock(attrs.stock != null ? String(attrs.stock) : "");
     setFeatured(!!attrs.featured);
-    setCategoryId(attrs.category?.id ?? attrs.category?.data?.id ?? "");
+    setCategoryId(attrs.category?.documentId ?? "");
     setSizesInput(toList(attrs.sizes));
     setColorsInput(toList(attrs.colors));
 
@@ -173,14 +174,12 @@ export function ProductFormModal({
         sizes: parseList(sizesInput),
         colors: parseList(colorsInput),
         image: imageId,
-        // Publicar para que se vea en la tienda
-        publishedAt: new Date().toISOString(),
+        // Strapi 5 enlaza relaciones por documentId; null quita la categoría
+        category: categoryId || null,
       };
 
-      if (categoryId) payload.category = Number(categoryId);
-
       if (isEditing) {
-        await updateProduct(token, product.id, payload);
+        await updateProduct(token, product.documentId, payload);
       } else {
         await createProduct(token, payload);
       }

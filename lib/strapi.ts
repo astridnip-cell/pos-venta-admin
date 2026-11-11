@@ -91,10 +91,11 @@ export async function getCategories(token: string) {
 }
 
 /**
- * Obtiene un producto por su ID.
+ * Obtiene un producto por su documentId.
+ * En Strapi 5 las rutas /api/products/:id usan el documentId (texto), no el id numérico.
  */
-export async function getProductById(token: string, id: number) {
-  const res = await fetch(`${STRAPI_URL}/api/products/${id}?populate=*`, {
+export async function getProductById(token: string, documentId: string) {
+  const res = await fetch(`${STRAPI_URL}/api/products/${documentId}?populate=*`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -149,7 +150,8 @@ export async function uploadImage(token: string, file: File) {
  * Crea un nuevo producto.
  */
 export async function createProduct(token: string, data: any) {
-  const res = await fetch(`${STRAPI_URL}/api/products`, {
+  // status=published: el producto queda publicado y visible en la tienda
+  const res = await fetch(`${STRAPI_URL}/api/products?status=published`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -165,8 +167,8 @@ export async function createProduct(token: string, data: any) {
 /**
  * Actualiza un producto existente.
  */
-export async function updateProduct(token: string, id: number, data: any) {
-  const res = await fetch(`${STRAPI_URL}/api/products/${id}`, {
+export async function updateProduct(token: string, documentId: string, data: any) {
+  const res = await fetch(`${STRAPI_URL}/api/products/${documentId}?status=published`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -182,8 +184,8 @@ export async function updateProduct(token: string, id: number, data: any) {
 /**
  * Elimina un producto.
  */
-export async function deleteProduct(token: string, id: number) {
-  const res = await fetch(`${STRAPI_URL}/api/products/${id}`, {
+export async function deleteProduct(token: string, documentId: string) {
+  const res = await fetch(`${STRAPI_URL}/api/products/${documentId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -198,10 +200,10 @@ export async function deleteProduct(token: string, id: number) {
  */
 export async function updateOrderStatus(
   token: string,
-  id: number,
+  documentId: string,
   status: string
 ) {
-  const res = await fetch(`${STRAPI_URL}/api/orders/${id}`, {
+  const res = await fetch(`${STRAPI_URL}/api/orders/${documentId}?status=published`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

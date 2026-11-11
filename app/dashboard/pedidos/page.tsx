@@ -24,7 +24,7 @@ export default function PedidosPage() {
   const { token } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [openMenu, setOpenMenu] = useState<number | null>(null);
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -44,22 +44,16 @@ export default function PedidosPage() {
     loadOrders();
   }, [token]);
 
-  const handleStatusChange = async (orderId: number, newStatus: string) => {
+  const handleStatusChange = async (documentId: string, newStatus: string) => {
     try {
-      await updateOrderStatus(token!, orderId, newStatus);
+      await updateOrderStatus(token!, documentId, newStatus);
+      // En Strapi 5 los datos vienen planos (sin "attributes")
       setOrders((prev) =>
-        prev.map((order) => {
-          if (order.id === orderId) {
-            return {
-              ...order,
-              attributes: {
-                ...order.attributes,
-                statusOrder: newStatus,
-              },
-            };
-          }
-          return order;
-        })
+        prev.map((order) =>
+          order.documentId === documentId
+            ? { ...order, statusOrder: newStatus }
+            : order
+        )
       );
       setOpenMenu(null);
     } catch (error) {
@@ -149,7 +143,7 @@ export default function PedidosPage() {
                             <button
                               onClick={() =>
                                 setOpenMenu(
-                                  openMenu === order.id ? null : order.id
+                                  openMenu === order.documentId ? null : order.documentId
                                 )
                               }
                               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}
@@ -160,7 +154,7 @@ export default function PedidosPage() {
                               <ChevronDown className="h-3 w-3" />
                             </button>
 
-                            {openMenu === order.id && (
+                            {openMenu === order.documentId && (
                               <div className="absolute top-full left-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg z-10 min-w-[140px]" style={{ boxShadow: '0 0 20px rgba(0, 255, 255, 0.1)' }}>
                                 {statusOptions.map((option) => {
                                   const OptionIcon = option.icon;
@@ -169,7 +163,7 @@ export default function PedidosPage() {
                                       key={option.value}
                                       onClick={() =>
                                         handleStatusChange(
-                                          order.id,
+                                          order.documentId,
                                           option.value
                                         )
                                       }

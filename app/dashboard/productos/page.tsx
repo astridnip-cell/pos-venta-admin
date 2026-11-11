@@ -21,7 +21,7 @@ import {
 export default function ProductosPage() {
   const { token } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     []
   );
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +67,7 @@ export default function ProductosPage() {
         const res = await getCategories(token!);
         const list = (res?.data || []).map((cat: any) => {
           const attrs = cat.attributes || cat;
-          return { id: cat.id, name: attrs.name };
+          return { id: cat.documentId, name: attrs.name };
         });
         setCategories(list);
       } catch (error) {
@@ -78,11 +78,11 @@ export default function ProductosPage() {
     loadCategories();
   }, [token]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (documentId: string) => {
     if (!confirm("¿Estás seguro de eliminar este producto?")) return;
     try {
-      await deleteProduct(token!, id);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      await deleteProduct(token!, documentId);
+      setProducts((prev) => prev.filter((p) => p.documentId !== documentId));
     } catch (error) {
       alert("Error al eliminar producto");
     }
@@ -98,7 +98,7 @@ export default function ProductosPage() {
   const openEdit = async (product: any) => {
     setIsEditingLoading(true);
     try {
-      const res = await getProductById(token!, product.id);
+      const res = await getProductById(token!, product.documentId);
       setEditingProduct(res?.data || product);
       setModalOpen(true);
     } catch (error) {
@@ -254,7 +254,7 @@ export default function ProductosPage() {
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={() => handleDelete(product.id)}
+                                onClick={() => handleDelete(product.documentId)}
                                 className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                                 style={{ textShadow: '0 0 5px #ff4757' }}
                               >
