@@ -37,6 +37,20 @@ export async function login(
 }
 
 /**
+ * Comprueba que el usuario tenga rol Administrador.
+ * El backend solo responde 200 a ese rol; a los clientes les responde 403.
+ */
+export async function checkPanelAccess(token: string): Promise<boolean> {
+  const res = await fetch(`${STRAPI_URL}/api/panel-access`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (res.status === 401 || res.status === 403) return false;
+  if (!res.ok) throw new Error("No se pudo verificar el acceso. Intenta de nuevo.");
+  return true;
+}
+
+/**
  * Obtiene los productos de Strapi con paginación opcional.
  */
 export async function getProducts(
@@ -58,21 +72,52 @@ export async function getProducts(
 }
 
 /**
- * Obtiene los pedidos de Strapi.
+ * Obtiene TODOS los pedidos de Strapi (el más reciente primero).
+ * Strapi entrega máximo 100 por página, así que se piden todas las páginas.
  */
 export async function getOrders(token: string) {
-  const res = await fetch(
-    `${STRAPI_URL}/api/orders?sort=createdAt:desc`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      next: { revalidate: 0 },
-    }
-  );
+  const pageSize = 100;
+  const all: any[] = [];
+  let page = 1;
+  let pageCount = 1;
 
-  if (!res.ok) throw new Error("Error al obtener pedidos");
-  return res.json();
+  do {
+    const res = await fetch(
+      `${STRAPI_URL}/api/orders?sort=createdAt:desc&pagination[page]=${page}&pagination[pageSize]=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        next: { revalidate: 0 },
+      }
+    );
+
+    if (!res.ok) throw new Error("Error al obtener pedidos");
+    const json = await res.json();
+    all.push(...(json?.data ?? []));
+    pageCount = json?.meta?.pagination?.pageCount ?? 1;
+    page++;
+  } while (page <= pageCount);
+
+  return { data: all, meta: { pagination: { total: all.length } } };
+}
+
+/**
+ * Un pedido cuenta como venta cuando su pago fue aprobado o cuando ya está
+ * pagado, enviado o entregado (los pedidos de prueba del seed no tienen estado de pago).
+ */
+export function isPaidOrder(order: any): boolean {
+  const o = order?.attributes || order;
+  return (
+    o?.paymentStatus === "approved" ||
+    ["paid", "shipped", "delivered"].includes(o?.statusOrder)
+  );
+}
+
+/** Total del pedido como número (en COP). */
+export function orderTotal(order: any): number {
+  const o = order?.attributes || order;
+  return Number(o?.total) || 0;
 }
 
 /**
@@ -87,6 +132,45 @@ export async function getCategories(token: string) {
   });
 
   if (!res.ok) throw new Error("Error al obtener categorías");
+  return res.json();
+}
+
+/**
+ * Convierte un nombre en un identificador para la URL: "Ropa Niños" → "ropa-ninos".
+ */
+export function slugify(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Crea una categoría publicada. El slug se arma a partir del nombre.
+ */
+export async function createCategory(
+  token: string,
+  data: { name: string; description?: string }
+) {
+  const res = await fetch(`${STRAPI_URL}/api/categories?status=published`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      data: {
+        name: data.name,
+        slug: slugify(data.name),
+        description: data.description || null,
+      },
+    }),
+  });
+
+  if (!res.ok) throw await getApiError(res, "Error al crear la categoría");
   return res.json();
 }
 

@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getProducts, getOrders, getCategories } from "@/lib/strapi";
+import { getProducts, getOrders, isPaidOrder, orderTotal } from "@/lib/strapi";
 import {
   Package,
   ShoppingCart,
   DollarSign,
-  TrendingUp,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
@@ -18,6 +17,14 @@ interface Stats {
   totalRevenue: number;
   lowStockProducts: number;
 }
+
+// Colores de cada estado de pedido
+const statusStyles: Record<string, { label: string; className: string }> = {
+  pending: { label: "Pendiente", className: "bg-amber-50 text-amber-700 ring-amber-600/20" },
+  paid: { label: "Pagado", className: "bg-blue-50 text-blue-700 ring-blue-600/20" },
+  shipped: { label: "Enviado", className: "bg-violet-50 text-violet-700 ring-violet-600/20" },
+  delivered: { label: "Entregado", className: "bg-emerald-50 text-emerald-700 ring-emerald-600/20" },
+};
 
 export default function DashboardPage() {
   const { token } = useAuth();
@@ -43,17 +50,19 @@ export default function DashboardPage() {
         const products = productsRes?.data || [];
         const orders = ordersRes?.data || [];
 
-        const totalRevenue = orders.reduce(
-          (sum: number, order: any) => sum + (order.attributes?.total || order.total || 0),
-          0
-        );
+        // Ingresos = solo pedidos pagados
+        const totalRevenue = orders
+          .filter(isPaidOrder)
+          .reduce((sum: number, order: any) => sum + orderTotal(order), 0);
 
-        const lowStockProducts = products.filter(
-          (p: any) => (p.attributes?.stock ?? p.stock ?? 0) < 5
-        ).length;
+        // Stock bajo = en o por debajo del stock mínimo de cada producto (10 si no tiene)
+        const lowStockProducts = products.filter((p: any) => {
+          const attrs = p.attributes || p;
+          return Number(attrs.stock ?? 0) <= Number(attrs.stock_minimo ?? 10);
+        }).length;
 
         setStats({
-          totalProducts: products.length,
+          totalProducts: productsRes?.meta?.pagination?.total ?? products.length,
           totalOrders: orders.length,
           totalRevenue,
           lowStockProducts,
@@ -73,81 +82,63 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
     );
   }
 
   const statCards = [
     {
-      label: "Total Productos",
+      label: "Total productos",
       value: stats.totalProducts,
       icon: Package,
-      color: "text-cyan-400",
-      bg: "bg-cyan-400/10",
-      border: "border-cyan-400/30",
+      iconClass: "bg-indigo-50 text-indigo-600",
     },
     {
       label: "Pedidos",
       value: stats.totalOrders,
       icon: ShoppingCart,
-      color: "text-green-400",
-      bg: "bg-green-400/10",
-      border: "border-green-400/30",
+      iconClass: "bg-blue-50 text-blue-600",
     },
     {
-      label: "Ingresos Totales",
+      label: "Ingresos (pagados)",
       value: `$${stats.totalRevenue.toLocaleString("es-CO")}`,
       icon: DollarSign,
-      color: "text-purple-400",
-      bg: "bg-purple-400/10",
-      border: "border-purple-400/30",
+      iconClass: "bg-emerald-50 text-emerald-600",
     },
     {
-      label: "Stock Bajo",
+      label: "Stock bajo",
       value: stats.lowStockProducts,
       icon: AlertTriangle,
-      color: "text-orange-400",
-      bg: "bg-orange-400/10",
-      border: "border-orange-400/30",
+      iconClass: "bg-amber-50 text-amber-600",
     },
   ];
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white" style={{ textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' }}>Dashboard</h1>
-        <p className="text-gray-400 mt-1">
-          Resumen general de tu tienda
-        </p>
+        <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
+        <p className="text-sm text-slate-500 mt-1">Resumen general de tu tienda</p>
       </div>
 
       {/* Tarjetas de métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {statCards.map((stat) => {
           const Icon = stat.icon;
-          const glowColor = stat.color === 'text-cyan-400' ? '#00ffff' : stat.color === 'text-green-400' ? '#39ff14' : stat.color === 'text-purple-400' ? '#bf00ff' : '#ff6600';
           return (
             <div
               key={stat.label}
-              className={`neon-card bg-[#111111] rounded-xl border ${stat.border} p-6`}
-              style={{ 
-                boxShadow: `0 0 15px ${glowColor}20, inset 0 0 15px ${glowColor}05`,
-                animation: 'float 3s ease-in-out infinite'
-              }}
+              className="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-400">{stat.label}</p>
-                  <p className={`text-2xl font-bold mt-1 ${stat.color}`} style={{ textShadow: `0 0 10px ${glowColor}, 0 0 20px ${glowColor}` }}>
-                    {stat.value}
-                  </p>
+                  <p className="text-sm text-slate-500">{stat.label}</p>
+                  <p className="text-2xl font-semibold text-slate-900 mt-1">{stat.value}</p>
                 </div>
                 <div
-                  className={`w-12 h-12 rounded-lg ${stat.bg} flex items-center justify-center`}
-                  style={{ boxShadow: `0 0 15px ${glowColor}40, inset 0 0 10px ${glowColor}20` }}
+                  className={`w-11 h-11 rounded-lg flex items-center justify-center ${stat.iconClass}`}
                 >
-                  <Icon className={`h-6 w-6 ${stat.color}`} style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }} />
+                  <Icon className="h-5 w-5" />
                 </div>
               </div>
             </div>
@@ -156,61 +147,51 @@ export default function DashboardPage() {
       </div>
 
       {/* Pedidos recientes */}
-      <div className="neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
-        <div className="p-6 border-b border-[#1a1a1a]">
-          <h2 className="text-lg font-semibold text-white" style={{ textShadow: '0 0 8px #00ffff, 0 0 16px #00ffff' }}>
-            Pedidos Recientes
-          </h2>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="px-6 py-4 border-b border-slate-200">
+          <h2 className="text-base font-semibold text-slate-900">Pedidos recientes</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-400 border-b border-[#1a1a1a]">
-                <th className="px-6 py-3 font-medium">Pedido</th>
-                <th className="px-6 py-3 font-medium">Cliente</th>
-                <th className="px-6 py-3 font-medium">Estado</th>
-                <th className="px-6 py-3 font-medium text-right">Total</th>
+              <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 bg-slate-50 border-b border-slate-200">
+                <th className="px-6 py-3">Pedido</th>
+                <th className="px-6 py-3">Cliente</th>
+                <th className="px-6 py-3">Estado</th>
+                <th className="px-6 py-3 text-right">Total</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-100">
               {recentOrders.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-6 py-8 text-center text-gray-500"
-                  >
+                  <td colSpan={4} className="px-6 py-8 text-center text-sm text-slate-500">
                     No hay pedidos aún
                   </td>
                 </tr>
               ) : (
                 recentOrders.map((order: any) => {
                   const attrs = order.attributes || order;
-                  const statusColors: Record<string, string> = {
-                    pending: "bg-yellow-400/10 text-yellow-400",
-                    paid: "bg-cyan-400/10 text-cyan-400",
-                    shipped: "bg-purple-400/10 text-purple-400",
-                    delivered: "bg-green-400/10 text-green-400",
+                  const status = statusStyles[attrs.statusOrder] || {
+                    label: attrs.statusOrder || "Pendiente",
+                    className: "bg-slate-100 text-slate-700 ring-slate-500/20",
                   };
 
                   return (
-                    <tr key={order.id} className="border-b border-[#1a1a1a] last:border-0 hover:bg-[#1a1a1a]/50">
-                      <td className="px-6 py-4 text-sm font-medium text-white">
+                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900">
                         #{attrs.orderNumber || order.id}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
+                      <td className="px-6 py-4 text-sm text-slate-600">
                         {attrs.customerName || "N/A"}
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            statusColors[attrs.statusOrder] ||
-                            "bg-gray-400/10 text-gray-400"
-                          }`}
+                          className={`inline-flex whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${status.className}`}
                         >
-                          {attrs.statusOrder || "pending"}
+                          {status.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-white text-right">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-900 text-right">
                         ${(attrs.total || 0).toLocaleString("es-CO")}
                       </td>
                     </tr>

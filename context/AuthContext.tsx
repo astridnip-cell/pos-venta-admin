@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { login, AuthResponse } from "@/lib/strapi";
+import { login, checkPanelAccess, AuthResponse } from "@/lib/strapi";
 
 interface AuthContextType {
   token: string | null;
@@ -21,20 +21,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Al cargar, verificar si hay un token guardado
+  // Al cargar, recuperar la sesión guardada y confirmar que sigue siendo de un Administrador
   useEffect(() => {
-    const savedToken = localStorage.getItem("admin_token");
-    const savedUser = localStorage.getItem("admin_user");
+    const clearSaved = () => {
+      localStorage.removeItem("admin_token");
+      localStorage.removeItem("admin_user");
+    };
 
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
+    async function restoreSession() {
+      const savedToken = localStorage.getItem("admin_token");
+      const savedUser = localStorage.getItem("admin_user");
+
+      if (savedToken && savedUser) {
+        try {
+          if (await checkPanelAccess(savedToken)) {
+            setToken(savedToken);
+            setUser(JSON.parse(savedUser));
+          } else {
+            clearSaved(); // sesión vencida o de una cuenta sin rol Administrador
+          }
+        } catch {
+          // Backend no disponible: se conserva la sesión; las páginas mostrarán el error al cargar datos
+          setToken(savedToken);
+          setUser(JSON.parse(savedUser));
+        }
+      }
+      setIsLoading(false);
     }
-    setIsLoading(false);
+
+    restoreSession();
   }, []);
 
   const handleLogin = async (identifier: string, password: string) => {
     const response = await login(identifier, password);
+
+    // Solo las cuentas con rol Administrador pueden entrar al panel
+    const allowed = await checkPanelAccess(response.jwt);
+    if (!allowed) {
+      throw new Error("Esta cuenta no tiene acceso al panel de administración.");
+    }
 
     // Guardar en localStorage para persistencia
     localStorage.setItem("admin_token", response.jwt);

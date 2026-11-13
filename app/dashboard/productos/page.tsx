@@ -125,62 +125,54 @@ export default function ProductosPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white" style={{ textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 40px #00ffff' }}>Productos</h1>
-          <p className="text-gray-400 mt-1">
-            Gestiona el inventario de tu tienda
-          </p>
+          <h1 className="text-2xl font-semibold text-slate-900">Productos</h1>
+          <p className="text-sm text-slate-500 mt-1">Gestiona el inventario de tu tienda</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 px-4 py-2.5 rounded-lg hover:bg-cyan-400/20 transition-colors"
-          style={{ boxShadow: '0 0 10px #00ffff40, 0 0 20px #00ffff20, inset 0 0 10px #00ffff10' }}
+          className="flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-sm hover:bg-slate-800 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          Nuevo Producto
+          Nuevo producto
         </button>
       </div>
 
       {/* Buscador */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
           type="text"
           placeholder="Buscar productos..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-[#111111] border border-[#1a1a1a] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
         />
       </div>
 
       {/* Tabla de productos */}
-      <div className="neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-sm text-gray-400 border-b border-[#1a1a1a]">
-                    <th className="px-6 py-3 font-medium">Producto</th>
-                    <th className="px-6 py-3 font-medium">Categoría</th>
-                    <th className="px-6 py-3 font-medium">Precio</th>
-                    <th className="px-6 py-3 font-medium">Stock</th>
-                    <th className="px-6 py-3 font-medium text-right">
-                      Acciones
-                    </th>
+                  <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-500 bg-slate-50 border-b border-slate-200">
+                    <th className="px-6 py-3">Producto</th>
+                    <th className="px-6 py-3">Categoría</th>
+                    <th className="px-6 py-3">Precio</th>
+                    <th className="px-6 py-3">Stock</th>
+                    <th className="px-6 py-3 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={5}
-                        className="px-6 py-8 text-center text-gray-500"
-                      >
-                        <Package className="h-8 w-8 mx-auto mb-2 text-cyan-400" />
+                      <td colSpan={5} className="px-6 py-10 text-center text-sm text-slate-500">
+                        <Package className="h-8 w-8 mx-auto mb-2 text-slate-300" />
                         No hay productos
                       </td>
                     </tr>
@@ -193,22 +185,18 @@ export default function ProductosPage() {
                         "Sin categoría";
                       const stock = attrs.stock ?? 0;
                       const imageUrl = attrs.image?.url || attrs.image?.data?.url;
-                      const stockColor =
+                      const stockClass =
                         stock < 5
-                          ? "text-red-400 bg-red-400/10"
+                          ? "bg-red-50 text-red-700 ring-red-600/20"
                           : stock < 20
-                          ? "text-orange-400 bg-orange-400/10"
-                          : "text-green-400 bg-green-400/10";
-                      const stockGlow = stock < 5 ? '#ff4757' : stock < 20 ? '#ff6600' : '#39ff14';
+                          ? "bg-amber-50 text-amber-700 ring-amber-600/20"
+                          : "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
 
                       return (
-                        <tr
-                          key={product.id}
-                          className="neon-table-row border-b border-[#1a1a1a] last:border-0"
-                        >
+                        <tr key={product.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-lg bg-[#1a1a1a] flex items-center justify-center overflow-hidden" style={{ boxShadow: 'inset 0 0 10px rgba(0, 255, 255, 0.05)' }}>
+                              <div className="w-10 h-10 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                                 {imageUrl ? (
                                   <img
                                     src={
@@ -220,43 +208,39 @@ export default function ProductosPage() {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <Package className="h-4 w-4 text-cyan-400" />
+                                  <Package className="h-4 w-4 text-slate-400" />
                                 )}
                               </div>
-                              <span className="text-sm font-medium text-white">
+                              <span className="text-sm font-medium text-slate-900">
                                 {attrs.name}
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-400">
-                            {category}
-                          </td>
-                          <td className="px-6 py-4 text-sm font-medium text-white">
+                          <td className="px-6 py-4 text-sm text-slate-600">{category}</td>
+                          <td className="px-6 py-4 text-sm font-medium text-slate-900">
                             ${attrs.price?.toLocaleString("es-CO")}
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${stockColor}`}
-                              style={{ boxShadow: `0 0 8px ${stockGlow}40` }}
+                              className={`inline-flex whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${stockClass}`}
                             >
                               {stock} uds
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1">
                               <button
                                 onClick={() => openEdit(product)}
                                 disabled={isEditingLoading}
                                 title="Editar producto"
-                                className="p-2 text-gray-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-lg transition-colors disabled:opacity-40"
-                                style={{ textShadow: '0 0 5px #00ffff' }}
+                                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors disabled:opacity-40"
                               >
                                 <Pencil className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => handleDelete(product.documentId)}
-                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                                style={{ textShadow: '0 0 5px #ff4757' }}
+                                title="Eliminar producto"
+                                className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -272,23 +256,20 @@ export default function ProductosPage() {
 
             {/* Paginación */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 p-4 border-t border-[#1a1a1a]">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                        currentPage === page
-                          ? "bg-cyan-400/20 text-cyan-400 border border-cyan-400/30"
-                          : "text-gray-400 hover:bg-[#1a1a1a]"
-                      }`}
-                      style={currentPage === page ? { boxShadow: '0 0 10px rgba(0, 255, 255, 0.3)' } : {}}
-                    >
-                      {page}
-                    </button>
-                  )
-                )}
+              <div className="flex items-center justify-center gap-1.5 p-4 border-t border-slate-200">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
             )}
           </>

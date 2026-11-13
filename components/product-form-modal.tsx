@@ -72,9 +72,9 @@ function toList(value: any): string {
 }
 
 const inputClass =
-  "w-full px-4 py-2.5 bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20";
+  "w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
 
-const labelClass = "block text-sm font-medium text-gray-300 mb-1.5";
+const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
 
 export function ProductFormModal({
   isOpen,
@@ -196,20 +196,20 @@ export function ProductFormModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Fondo oscuro */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Contenido */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto neon-card bg-[#111111] rounded-xl border border-[#1a1a1a]">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-xl border border-slate-200 shadow-xl">
         {/* Encabezado */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-[#111111] border-b border-[#1a1a1a]">
-          <h2 className="text-lg font-bold text-white">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+          <h2 className="text-lg font-semibold text-slate-900">
             {isEditing ? "Editar producto" : "Nuevo producto"}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-[#1a1a1a] rounded-lg transition-colors"
+            className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -217,7 +217,7 @@ export function ProductFormModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-400/10 border border-red-400/30 text-red-400 text-sm">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -272,7 +272,7 @@ export function ProductFormModal({
                 placeholder="60000"
                 className={inputClass}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Se usa para mostrar el descuento. Déjalo vacío si no aplica.
               </p>
             </div>
@@ -298,9 +298,9 @@ export function ProductFormModal({
                   type="checkbox"
                   checked={featured}
                   onChange={(e) => setFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-cyan-400"
+                  className="w-4 h-4 accent-slate-900"
                 />
-                <span className="text-sm text-gray-300">
+                <span className="text-sm text-slate-700">
                   Producto destacado
                 </span>
               </label>
@@ -335,7 +335,7 @@ export function ProductFormModal({
                 placeholder="XS, S, M, L, XL"
                 className={inputClass}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Separa con comas.
               </p>
             </div>
@@ -348,7 +348,7 @@ export function ProductFormModal({
                 placeholder="Negro, Blanco, Azul"
                 className={inputClass}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Separa con comas.
               </p>
             </div>
@@ -360,7 +360,7 @@ export function ProductFormModal({
               Imagen {!isEditing && "*"}
             </label>
             <div className="flex items-center gap-4">
-              <div className="w-24 h-24 rounded-lg bg-[#0d0d0d] border border-[#1a1a1a] flex items-center justify-center overflow-hidden flex-shrink-0">
+              <div className="w-24 h-24 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {imagePreview ? (
                   <img
                     src={imagePreview}
@@ -368,7 +368,7 @@ export function ProductFormModal({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <ImageIcon className="h-6 w-6 text-gray-600" />
+                  <ImageIcon className="h-6 w-6 text-slate-400" />
                 )}
               </div>
               <div className="flex-1">
@@ -382,13 +382,13 @@ export function ProductFormModal({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 rounded-lg hover:bg-cyan-400/20 transition-colors text-sm"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-colors text-sm font-medium"
                 >
                   <Upload className="h-4 w-4" />
                   {imageFile ? imageFile.name : "Seleccionar imagen"}
                 </button>
                 {isEditing && !imageFile && (
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-slate-500 mt-2">
                     Deja la imagen actual si no seleccionas una nueva.
                   </p>
                 )}
@@ -397,19 +397,19 @@ export function ProductFormModal({
           </div>
 
           {/* Acciones */}
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#1a1a1a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-sm font-medium text-gray-300 hover:text-white hover:bg-[#1a1a1a] rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-5 py-2.5 bg-cyan-400 text-black text-sm font-semibold rounded-lg hover:bg-cyan-300 transition-colors disabled:opacity-60"
+              className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-sm hover:bg-slate-800 transition-colors disabled:opacity-60"
             >
               {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSubmitting

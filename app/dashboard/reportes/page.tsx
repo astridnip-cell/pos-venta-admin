@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getProducts, getOrders } from "@/lib/strapi";
+import { getProducts, getOrders, isPaidOrder, orderTotal } from "@/lib/strapi";
 import {
   BarChart,
   Bar,
@@ -96,26 +96,58 @@ export default function ReportesPage() {
   }
 
   // Calcular métricas
-  const totalRevenue = orders.reduce(
-    (sum: number, order: any) => sum + (order.total || 0),
-    0
-  );
+  // Ingresos = solo pedidos pagados (pago aprobado, o pagado / enviado / entregado)
+  const paidOrders = orders.filter(isPaidOrder);
+  const sumTotals = (list: any[]) => list.reduce((sum: number, order: any) => sum + orderTotal(order), 0);
+  const totalRevenue = sumTotals(paidOrders);
   const totalOrders = orders.length;
   const totalProducts = products.length;
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+  const avgOrderValue = paidOrders.length > 0 ? totalRevenue / paidOrders.length : 0;
 
-  // Ventas por mes
-  const salesByMonth = orders.reduce((acc: any, order: any) => {
-    const date = new Date(order.createdAt);
-    const month = date.toLocaleDateString("es-CO", { month: "short" });
-    acc[month] = (acc[month] || 0) + (order.total || 0);
+  // Cambio real: mes actual frente al mes anterior
+  const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const now = new Date();
+  const thisMonth = monthKey(now);
+  const lastMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+  const inMonth = (item: any, key: string) => !!item.createdAt && monthKey(new Date(item.createdAt)) === key;
+  const percentChange = (current: number, previous: number) => {
+    if (!previous) return { change: current > 0 ? "Nuevo" : "—", isPositive: true };
+    const pct = ((current - previous) / previous) * 100;
+    return { change: `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`, isPositive: pct >= 0 };
+  };
+  const paidNow = paidOrders.filter((o: any) => inMonth(o, thisMonth));
+  const paidPrev = paidOrders.filter((o: any) => inMonth(o, lastMonth));
+  const revenueChange = percentChange(sumTotals(paidNow), sumTotals(paidPrev));
+  const ordersChange = percentChange(
+    orders.filter((o: any) => inMonth(o, thisMonth)).length,
+    orders.filter((o: any) => inMonth(o, lastMonth)).length
+  );
+  const productsChange = percentChange(
+    products.filter((p: any) => inMonth(p, thisMonth)).length,
+    products.filter((p: any) => inMonth(p, lastMonth)).length
+  );
+  const avgChange = percentChange(
+    paidNow.length ? sumTotals(paidNow) / paidNow.length : 0,
+    paidPrev.length ? sumTotals(paidPrev) / paidPrev.length : 0
+  );
+
+  // Ventas por mes (pedidos pagados), en orden cronológico y con el año
+  const salesByMonth = paidOrders.reduce((acc: Record<string, number>, order: any) => {
+    if (!order.createdAt) return acc;
+    const key = monthKey(new Date(order.createdAt));
+    acc[key] = (acc[key] || 0) + orderTotal(order);
     return acc;
   }, {});
 
-  const salesData = Object.entries(salesByMonth).map(([month, total]) => ({
-    month,
-    total: Number(total),
-  }));
+  const salesData = Object.keys(salesByMonth)
+    .sort()
+    .map((key) => {
+      const [y, m] = key.split("-").map(Number);
+      return {
+        month: new Date(y, m - 1, 1).toLocaleDateString("es-CO", { month: "short", year: "2-digit" }),
+        total: salesByMonth[key],
+      };
+    });
 
   // Productos por categoría
   const productsByCategory = products.reduce((acc: any, product: any) => {
@@ -144,8 +176,8 @@ export default function ReportesPage() {
   const deliveredOrders = ordersByStatus["delivered"] || 0;
   const deliveryRate = totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 0;
 
-  const paidOrders = ordersByStatus["paid"] || 0;
-  const paymentRate = totalOrders > 0 ? Math.round((paidOrders / totalOrders) * 100) : 0;
+  // Pedidos pagados (pagado, enviado o entregado) sobre el total
+  const paymentRate = totalOrders > 0 ? Math.round((paidOrders.length / totalOrders) * 100) : 0;
 
   const lowStockProducts = products.filter((p) => (p.stock ?? 0) < 10).length;
   const stockHealthRate = totalProducts > 0 ? Math.round(((totalProducts - lowStockProducts) / totalProducts) * 100) : 100;
@@ -156,8 +188,8 @@ export default function ReportesPage() {
     { name: "Stock OK", value: stockHealthRate, fill: NEON_COLORS.magenta },
   ];
 
-  // Top productos por ingresos
-  const productRevenue = orders.reduce((acc: any, order: any) => {
+  // Top productos por ingresos (solo pedidos pagados)
+  const productRevenue = paidOrders.reduce((acc: any, order: any) => {
     const items = typeof order.items === "string" ? JSON.parse(order.items) : order.items || [];
     items.forEach((item: any) => {
       acc[item.name] = (acc[item.name] || 0) + item.price * item.quantity;
@@ -174,32 +206,28 @@ export default function ReportesPage() {
     {
       label: "Ingresos Totales",
       value: `$${totalRevenue.toLocaleString("es-CO")}`,
-      change: "+12.5%",
-      isPositive: true,
+      ...revenueChange,
       icon: DollarSign,
       color: NEON_COLORS.cyan,
     },
     {
       label: "Pedidos",
       value: totalOrders.toString(),
-      change: "+8.2%",
-      isPositive: true,
+      ...ordersChange,
       icon: Package,
       color: NEON_COLORS.magenta,
     },
     {
       label: "Productos",
       value: totalProducts.toString(),
-      change: "+15.3%",
-      isPositive: true,
+      ...productsChange,
       icon: TrendingUp,
       color: NEON_COLORS.green,
     },
     {
       label: "Promedio por Pedido",
       value: `$${Math.round(avgOrderValue).toLocaleString("es-CO")}`,
-      change: "-2.1%",
-      isPositive: false,
+      ...avgChange,
       icon: Users,
       color: NEON_COLORS.orange,
     },
@@ -211,7 +239,7 @@ export default function ReportesPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Reportes</h1>
         <p className="text-gray-400 mt-1">
-          Análisis y métricas de tu tienda
+          Análisis y métricas de tu tienda · los porcentajes comparan este mes con el mes anterior
         </p>
       </div>
 
@@ -288,10 +316,10 @@ export default function ReportesPage() {
           )}
         </div>
 
-        {/* Ventas por categoría */}
+        {/* Productos por categoría */}
         <div className="bg-[#12121a] border border-[#1e1e2e] rounded-xl p-5">
           <h3 className="text-sm font-semibold text-white mb-4">
-            Ventas por Categoría
+            Productos por Categoría
           </h3>
           {categoryData.length === 0 ? (
             <p className="text-gray-500 text-center py-8 text-sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Loader2, Lock, Mail, AlertCircle } from "lucide-react";
@@ -13,11 +13,12 @@ export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // Si ya está autenticado, redirigir al dashboard
-  if (isAuthenticated) {
-    router.push("/dashboard");
-    return null;
-  }
+  // Si ya está autenticado, redirigir al dashboard (en un efecto, no durante el render)
+  useEffect(() => {
+    if (isAuthenticated) router.push("/dashboard");
+  }, [isAuthenticated, router]);
+
+  if (isAuthenticated) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
