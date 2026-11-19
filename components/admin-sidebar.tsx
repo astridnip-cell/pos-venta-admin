@@ -7,6 +7,7 @@ import {
   Package,
   ShoppingCart,
   Tags,
+  ImageIcon,
   BarChart3,
   LogOut,
 } from "lucide-react";
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/dashboard/productos", label: "Productos", icon: Package },
   { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/dashboard/categorias", label: "Categorías", icon: Tags },
+  { href: "/dashboard/portadas", label: "Portadas", icon: ImageIcon },
   { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3 },
 ];
 

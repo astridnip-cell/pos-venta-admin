@@ -299,3 +299,61 @@ export async function updateOrderStatus(
   if (!res.ok) throw new Error("Error al actualizar pedido");
   return res.json();
 }
+
+/* ------------------------------------------------------------------ */
+/* Portadas: la foto principal de la página de inicio, una por semana  */
+/* ------------------------------------------------------------------ */
+
+export interface Cover {
+  id: number;
+  documentId: string;
+  title: string;
+  subtitle?: string | null;
+  /** Lunes de la semana en que se muestra, "AAAA-MM-DD" */
+  weekStart: string;
+  image?: { id: number; url: string } | null;
+}
+
+/** Todas las portadas, la semana más reciente primero. */
+export async function getCovers(token: string): Promise<Cover[]> {
+  const res = await fetch(
+    `${STRAPI_URL}/api/covers?sort=weekStart:desc&pagination[pageSize]=100&populate[image][fields][0]=url`,
+    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+  );
+  if (!res.ok) throw await getApiError(res, "Error al obtener las portadas");
+  const json = await res.json();
+  return json?.data ?? [];
+}
+
+/** Crea una portada para la semana que empieza en weekStart (un lunes). */
+export async function createCover(
+  token: string,
+  data: { title: string; subtitle?: string; weekStart: string; image: number }
+) {
+  const res = await fetch(`${STRAPI_URL}/api/covers`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ data: { ...data, subtitle: data.subtitle || null } }),
+  });
+  if (!res.ok) {
+    const error = await getApiError(res, "Error al crear la portada");
+    // weekStart es único: Strapi lo rechaza si ya hay una portada esa semana
+    if (/unique/i.test(error.message)) {
+      throw new Error("Ya hay una portada programada para esa semana. Elimínala o elige otra semana.");
+    }
+    throw error;
+  }
+  return res.json();
+}
+
+/** Elimina una portada. */
+export async function deleteCover(token: string, documentId: string) {
+  const res = await fetch(`${STRAPI_URL}/api/covers/${documentId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw await getApiError(res, "Error al eliminar la portada");
+}
